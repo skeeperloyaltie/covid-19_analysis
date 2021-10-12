@@ -1,0 +1,61 @@
+---
+title: "COVID Analysis"
+author: "Ajith Kumar"
+date: "6/30/2020"
+output: pdf_document
+---
+
+```{r, echo=TRUE}
+#confirmed cases worldwide
+confirmed_cases_worldwide = read.csv('~/Downloads/confirmed_cases_worldwide.csv')
+ggplot(data = confirmed_cases_worldwide) +
+  aes(x = as.Date(date), y = cum_cases, color = 'orange') +
+  geom_point() + geom_line()
+```
+
+```{r, echo=TRUE}
+#confirmed cases China
+confirmed_cases_china = read.csv('~/Downloads/confirmed_cases_china_vs_world.csv')
+ggplot(data = confirmed_cases_china) +
+  aes(x = as.Date(date), y = cum_cases, color = is_china) +
+  geom_point() + geom_line()
+
+confirmed_cases_china$date <- as.Date(confirmed_cases_china$date, format= "%Y-%m-%d")
+confirmed_cases_china_feb15 = subset(confirmed_cases_china, date> "2020-02-14")
+ggplot(data = confirmed_cases_china_feb15) +
+  aes(x = as.Date(date), y = cum_cases, color = is_china) +
+  geom_point() + geom_line()
+```
+
+```{r, echo=TRUE}
+#confirmed cases out of China
+confirmed_cases_top7_outofchina = read.csv('~/Downloads/confirmed_cases_top7_outside_china.csv')
+top_countries_by_total_cases = confirmed_cases_top7_outofchina%>%
+  group_by(country)%>%
+  summarise(sum = sum(cum_cases))
+final = confirmed_cases_top7_outofchina%>%
+  group_by(country, date)%>%
+  summarise(sum=sum(cum_cases))
+ggplot(data = final) +
+  aes(x = as.Date(date), y = sum, color = country) +
+  geom_point() + geom_line()
+```
+
+```{r, echo=TRUE}
+#confirmed cases China
+coronavirus = read.csv('~/Documents/coronavirus.csv')
+coronavirus = coronavirus %>%
+  select(Country.Region, cases) %>%
+  group_by(Country.Region) %>%
+  summarise(cases=sum(cases))
+
+names(coronavirus)[1] <- "region"
+
+world_map <- map_data("world")
+
+coro = left_join(coronavirus, world_map, by = 'region')
+
+ggplot(coro, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = cases), color = "white")+
+  scale_fill_viridis_c()
+```
